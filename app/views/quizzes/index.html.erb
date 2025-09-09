@@ -1,0 +1,42 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">AI Quiz Platform</h1>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">Create a New Quiz</h2>
+      <p class="text-gray-600 mb-4">Enter any topic you'd like to be quizzed on. The AI will generate 5 adaptive questions to assess your proficiency.</p>
+      
+      <%= link_to "Start New Quiz", new_quiz_path, class: "inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+
+    <% if @quizzes.any? %>
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Recent Quizzes</h2>
+        
+        <div class="space-y-4">
+          <% @quizzes.each do |quiz| %>
+            <div class="border-l-4 border-blue-500 pl-4 py-2">
+              <div class="flex justify-between items-center">
+                <div>
+                  <h3 class="font-semibold text-gray-800"><%= quiz.topic.titleize %></h3>
+                  <p class="text-sm text-gray-500">Created <%= time_ago_in_words(quiz.created_at) %> ago</p>
+                  <p class="text-sm text-gray-600">
+                    Completed attempts: <%= quiz.quiz_attempts.where.not(completed_at: nil).count %>
+                  </p>
+                </div>
+                <div class="flex space-x-2">
+                  <%= link_to "View", quiz_path(quiz), class: "text-blue-600 hover:text-blue-800" %>
+                  <%= link_to "Retake", quiz_quiz_attempts_path(quiz), method: :post, class: "bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm" %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="bg-gray-50 rounded-lg p-8 text-center">
+        <p class="text-gray-600">No quizzes created yet. Start your first quiz above!</p>
+      </div>
+    <% end %>
+  </div>
+</div>

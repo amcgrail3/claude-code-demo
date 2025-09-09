@@ -1,0 +1,56 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+      <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Quiz: <%= @quiz_attempt.quiz.topic.titleize %></h1>
+        <div class="text-sm text-gray-500">
+          Question <%= @current_question_number %> of 5
+        </div>
+      </div>
+      
+      <!-- Progress bar -->
+      <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+        <div class="bg-blue-600 h-2 rounded-full" style="width: <%= (@current_question_number - 1) * 20 %>%"></div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <% if @current_question %>
+        <div class="mb-6">
+          <div class="flex items-center mb-4">
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+              Difficulty: <%= "★" * @current_question.difficulty_level %>
+            </span>
+          </div>
+          
+          <h2 class="text-xl font-semibold text-gray-800 mb-6">
+            <%= @current_question.content %>
+          </h2>
+
+          <%= form_with url: quiz_attempt_path(@quiz_attempt), method: :patch, local: true, class: "space-y-4" do |form| %>
+            <%= form.hidden_field :question_id, value: @current_question.id %>
+            
+            <% @current_question.answer_options_array.each do |option_key, option_text| %>
+              <label class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <%= form.radio_button :answer, option_key, class: "mr-3" %>
+                <span class="text-gray-700">
+                  <strong><%= option_key %>:</strong> <%= option_text %>
+                </span>
+              </label>
+            <% end %>
+
+            <div class="flex justify-between pt-6">
+              <%= link_to "← Back to Quizzes", root_path, class: "text-gray-600 hover:text-gray-800" %>
+              <%= form.submit "Next Question", class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded" %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Loading quiz...</h2>
+          <p class="text-gray-600">Please wait while we generate your questions.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

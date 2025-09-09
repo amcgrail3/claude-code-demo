@@ -1,0 +1,128 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Quiz: <%= @quiz.topic.titleize %></h1>
+      <p class="text-gray-600">Created <%= time_ago_in_words(@quiz.created_at) %> ago</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Take Quiz</h2>
+        <p class="text-gray-600 mb-4">Test your knowledge on this topic with 5 adaptive questions.</p>
+        <%= link_to "Start Quiz", quiz_quiz_attempts_path(@quiz), method: :post, class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Quiz Stats</h2>
+        <div class="space-y-2">
+          <p class="text-gray-700">
+            <strong>Total attempts:</strong> <%= @quiz.quiz_attempts.count %>
+          </p>
+          <p class="text-gray-700">
+            <strong>Completed:</strong> <%= @quiz.quiz_attempts.where.not(completed_at: nil).count %>
+          </p>
+          <% if @quiz.quiz_attempts.where.not(completed_at: nil).any? %>
+            <p class="text-gray-700">
+              <strong>Average score:</strong> 
+              <%= @quiz.quiz_attempts.where.not(completed_at: nil).average(:final_score).round(1) %>%
+            </p>
+            <p class="text-gray-700">
+              <strong>Best score:</strong> 
+              <%= @quiz.quiz_attempts.where.not(completed_at: nil).maximum(:final_score).round(1) %>%
+            </p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz History -->
+    <% completed_attempts = @quiz.quiz_attempts.where.not(completed_at: nil).order(created_at: :desc) %>
+    <% if completed_attempts.any? %>
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Quiz History</h2>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Score
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Performance
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% completed_attempts.each do |attempt| %>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= attempt.completed_at.strftime("%b %d, %Y at %I:%M %p") %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-lg font-semibold <%= attempt.final_score >= 80 ? 'text-green-600' : attempt.final_score >= 60 ? 'text-yellow-600' : 'text-red-600' %>">
+                      <%= attempt.final_score.round(1) %>%
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <% if attempt.final_score >= 90 %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Expert
+                      </span>
+                    <% elsif attempt.final_score >= 80 %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Advanced
+                      </span>
+                    <% elsif attempt.final_score >= 60 %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Intermediate
+                      </span>
+                    <% elsif attempt.final_score >= 40 %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                        Beginner
+                      </span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Novice
+                      </span>
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <%= link_to "View Results", results_quiz_attempt_path(attempt), class: "text-blue-600 hover:text-blue-900" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- In Progress Attempts -->
+    <% if @quiz_attempts.any? %>
+      <div class="bg-yellow-50 rounded-lg border border-yellow-200 p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-yellow-800">In Progress</h2>
+        <p class="text-yellow-700 mb-4">You have unfinished quiz attempts for this topic:</p>
+        <% @quiz_attempts.each do |attempt| %>
+          <div class="flex justify-between items-center py-2">
+            <span class="text-yellow-800">
+              Started <%= time_ago_in_words(attempt.created_at) %> ago 
+              (<%= attempt.user_answers_hash.keys.count %> of 5 questions answered)
+            </span>
+            <%= link_to "Continue", quiz_attempt_path(attempt), class: "text-yellow-600 hover:text-yellow-800 font-medium" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="flex justify-between">
+      <%= link_to "← Back to All Quizzes", root_path, class: "text-gray-600 hover:text-gray-800" %>
+    </div>
+  </div>
+</div>
